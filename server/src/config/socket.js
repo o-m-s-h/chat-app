@@ -1,22 +1,18 @@
 const { Server } = require("socket.io");
+const { handleSocket } = require("../modules/socket/socket.handler");
 
 let io;
 
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: "*", // later restrict this
+      origin: "*", // later restrict in production
       methods: ["GET", "POST"]
     }
   });
 
-  io.on("connection", (socket) => {
-    console.log(`⚡ User connected: ${socket.id}`);
-
-    socket.on("disconnect", () => {
-      console.log(`❌ User disconnected: ${socket.id}`);
-    });
-  });
+  // Delegate all logic to handler (clean architecture)
+  handleSocket(io);
 };
 
 const getIO = () => {
