@@ -3,7 +3,6 @@ const cors = require("cors");
 const authRoutes = require("./modules/auth/auth.routes");
 const chatRoutes = require("./modules/chat/chat.routes");
 
-
 const app = express();
 
 // Middlewares
