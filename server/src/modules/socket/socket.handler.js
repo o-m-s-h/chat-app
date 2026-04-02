@@ -32,6 +32,9 @@ const handleSocket = (io) => {
       console.log(`✅ User ${userId} is online`);
       console.log("📡 Current sockets:", onlineUsers.get(userId));
 
+      // 🔥 NEW: Send all online users to this client
+      socket.emit("online_users", Array.from(onlineUsers.keys()));
+
       // Emit online only first time
       if (onlineUsers.get(userId).length === 1) {
         socket.broadcast.emit(events.USER_ONLINE, { userId });
@@ -104,6 +107,7 @@ const handleSocket = (io) => {
           if (!message) return;
 
           if (message.receiver.toString() !== userId) return;
+
           message.status = "seen";
           await message.save();
 
