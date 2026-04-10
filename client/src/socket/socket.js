@@ -4,7 +4,7 @@ let socket = null;
 
 export const connectSocket = (token) => {
   if (!socket) {
-    socket = io("http://localhost:5000", {
+    socket = io(process.env.REACT_APP_SOCKET_URL, {
       auth: { token },
       autoConnect: true
     });
