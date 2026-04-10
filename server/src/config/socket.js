@@ -8,7 +8,7 @@ const initSocket = (server) => {
     cors: {
       origin: "*", // later restrict in production
       methods: ["GET", "POST"]
-    }
+    },
   });
 
   // Delegate all logic to handler (clean architecture)
