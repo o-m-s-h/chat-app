@@ -10,7 +10,8 @@ const initSocket = (server) => {
       "http://localhost:3000",
       "https://omkar-chat-app.vercel.app"
     ], // later restrict in production
-      methods: ["GET", "POST"]
+      methods: ["GET", "POST"],
+      credentials : true
     },
   });
 
