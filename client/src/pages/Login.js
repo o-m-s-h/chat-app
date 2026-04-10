@@ -1,33 +1,45 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import API from "../services/api";
-import { connectSocket } from "../socket/socket";
+import LoginUI from "./LoginUI";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const navigate = useNavigate();
+
   const handleLogin = async () => {
-    const res = await API.post("/auth/login", {
-      email,
-      password
-    });
+    try {
+      const res = await API.post("/auth/login", {
+        email,
+        password
+      });
 
-    const token = res.data.token;
+      const { token, user } = res.data;
 
-    localStorage.setItem("token", token);
+      sessionStorage.setItem("token", token);
+      sessionStorage.setItem("userId", user._id);
 
-    connectSocket(token);
+      localStorage.setItem("token", token);
+      localStorage.setItem("userId", user._id);
+      localStorage.setItem("username", user.username);
 
-    alert("Login successful");
+      navigate("/chat");
+    } catch (err) {
+      console.error(err);
+      alert("Login failed");
+    }
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-      <input placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
-      <input placeholder="Password" type="password" onChange={(e) => setPassword(e.target.value)} />
-      <button onClick={handleLogin}>Login</button>
-    </div>
+    <LoginUI
+      email={email}
+      password={password}
+      setEmail={setEmail}
+      setPassword={setPassword}
+      handleLogin={handleLogin}
+    />
   );
 }
 
