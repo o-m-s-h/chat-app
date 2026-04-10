@@ -6,7 +6,10 @@ let io;
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: "*", // later restrict in production
+      origin: [
+      "http://localhost:3000",
+      "https://omkar-chat-app.vercel.app"
+    ], // later restrict in production
       methods: ["GET", "POST"]
     },
   });
