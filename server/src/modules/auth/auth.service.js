@@ -3,9 +3,17 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const registerUser = async ({ username, email, password }) => {
-  const existingUser = await User.findOne({ email });
+  const existingUser = await User.findOne({
+    $or: [{ email }, { username }]
+  });
+
   if (existingUser) {
-    throw new Error("User already exists");
+    if (existingUser.email === email) {
+      throw new Error("Email already exists");
+    }
+    if (existingUser.username === username) {
+      throw new Error("Username already taken");
+    }
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -18,6 +26,7 @@ const registerUser = async ({ username, email, password }) => {
 
   return user;
 };
+
 
 const loginUser = async ({ email, password }) => {
   const user = await User.findOne({ email });
