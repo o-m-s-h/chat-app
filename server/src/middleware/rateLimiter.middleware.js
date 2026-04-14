@@ -24,7 +24,7 @@ const globalLimiter = rateLimit({
 // ==============================
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // only 10 login/register attempts
+  max: 100, // only 10 login/register attempts
   standardHeaders: true,
   legacyHeaders: false,
   store: new RedisStore({
