@@ -19,7 +19,8 @@ app.use(globalLimiter);
 // ==============================
 // 🛣️ Routes
 // ==============================
-app.use("/api/auth", authLimiter, authRoutes);  // stricter limiter on auth
+// app.use("/api/auth", authLimiter, authRoutes);  // stricter limiter on auth
+app.use("/api/auth", authRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/users", userRoutes);
 
