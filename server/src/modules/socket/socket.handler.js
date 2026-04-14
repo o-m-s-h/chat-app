@@ -2,12 +2,17 @@ const jwt = require("jsonwebtoken");
 const events = require("./events");
 const { createMessage } = require("../message/message.service");
 const Message = require("../message/message.model");
-
-// userId -> [socketIds]
-const onlineUsers = new Map();
+const {
+  addUserSocket,
+  removeUserSocket,
+  getUserSockets,
+  getOnlineUserIds,
+} = require("../presence/presence.service");
+const { socketRateLimiter } = require("../../middleware/rateLimiter.middleware");
+const redis = require("../../config/redis");
 
 const handleSocket = (io) => {
-  io.on(events.CONNECTION, (socket) => {
+  io.on(events.CONNECTION, async (socket) => {
     console.log("⚡ Socket connected:", socket.id);
 
     const token = socket.handshake.auth?.token;
@@ -22,21 +27,18 @@ const handleSocket = (io) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const userId = decoded.userId;
 
-      // 🔥 Store user sockets
-      if (!onlineUsers.has(userId)) {
-        onlineUsers.set(userId, []);
-      }
-
-      onlineUsers.get(userId).push(socket.id);
+      // 🔥 Add socket to Redis presence
+      await addUserSocket(userId, socket.id);
 
       console.log(`✅ User ${userId} is online`);
-      console.log("📡 Current sockets:", onlineUsers.get(userId));
 
-      // 🔥 NEW: Send all online users to this client
-      socket.emit("online_users", Array.from(onlineUsers.keys()));
+      // 🔥 Send all online users to this client
+      const onlineUserIds = await getOnlineUserIds();
+      socket.emit("online_users", onlineUserIds);
 
-      // Emit online only first time
-      if (onlineUsers.get(userId).length === 1) {
+      // Emit online only on first socket
+      const userSockets = await getUserSockets(userId);
+      if (userSockets.length === 1) {
         socket.broadcast.emit(events.USER_ONLINE, { userId });
       }
 
@@ -45,17 +47,24 @@ const handleSocket = (io) => {
       // ==============================
       socket.on(events.SEND_MESSAGE, async ({ receiverId, content }) => {
         try {
+          // 🛡️ Rate limit: 30 messages per 60 seconds
+          const allowed = await socketRateLimiter(redis, userId, "send_message", 30, 60);
+          if (!allowed) {
+            socket.emit("error", { message: "Slow down! You are sending messages too fast." });
+            return;
+          }
+
           console.log(`📩 Message from ${userId} → ${receiverId}`);
 
           const message = await createMessage({
             sender: userId,
             receiver: receiverId,
-            content
+            content,
           });
 
-          const receiverSockets = onlineUsers.get(receiverId);
+          const receiverSockets = await getUserSockets(receiverId);
 
-          if (receiverSockets && receiverSockets.length > 0) {
+          if (receiverSockets.length > 0) {
             receiverSockets.forEach((socketId) => {
               io.to(socketId).emit(events.RECEIVE_MESSAGE, message);
             });
@@ -74,27 +83,25 @@ const handleSocket = (io) => {
       // ==============================
       // ✍️ TYPING START
       // ==============================
-      socket.on(events.TYPING, ({ receiverId }) => {
-        const receiverSockets = onlineUsers.get(receiverId);
+      socket.on(events.TYPING, async ({ receiverId }) => {
+        // 🛡️ Rate limit: 20 typing events per 10 seconds
+        const allowed = await socketRateLimiter(redis, userId, "typing", 20, 10);
+        if (!allowed) return; // silently drop, no need to notify user
 
-        if (receiverSockets) {
-          receiverSockets.forEach((socketId) => {
-            io.to(socketId).emit(events.TYPING, { userId });
-          });
-        }
+        const receiverSockets = await getUserSockets(receiverId);
+        receiverSockets.forEach((socketId) => {
+          io.to(socketId).emit(events.TYPING, { userId });
+        });
       });
 
       // ==============================
       // ✍️ TYPING STOP
       // ==============================
-      socket.on(events.STOP_TYPING, ({ receiverId }) => {
-        const receiverSockets = onlineUsers.get(receiverId);
-
-        if (receiverSockets) {
-          receiverSockets.forEach((socketId) => {
-            io.to(socketId).emit(events.STOP_TYPING, { userId });
-          });
-        }
+      socket.on(events.STOP_TYPING, async ({ receiverId }) => {
+        const receiverSockets = await getUserSockets(receiverId);
+        receiverSockets.forEach((socketId) => {
+          io.to(socketId).emit(events.STOP_TYPING, { userId });
+        });
       });
 
       // ==============================
@@ -105,23 +112,18 @@ const handleSocket = (io) => {
           const message = await Message.findById(messageId);
 
           if (!message) return;
-
           if (message.receiver.toString() !== userId) return;
 
           message.status = "seen";
           await message.save();
 
-          // Notify sender
-          const senderSockets = onlineUsers.get(message.sender.toString());
-
-          if (senderSockets) {
-            senderSockets.forEach((socketId) => {
-              io.to(socketId).emit(events.MESSAGE_SEEN, {
-                messageId,
-                status: "seen"
-              });
+          const senderSockets = await getUserSockets(message.sender.toString());
+          senderSockets.forEach((socketId) => {
+            io.to(socketId).emit(events.MESSAGE_SEEN, {
+              messageId,
+              status: "seen",
             });
-          }
+          });
 
         } catch (err) {
           console.log("❌ Seen error:", err.message);
@@ -131,17 +133,13 @@ const handleSocket = (io) => {
       // ==============================
       // 🔌 DISCONNECT
       // ==============================
-      socket.on(events.DISCONNECT, () => {
+      socket.on(events.DISCONNECT, async () => {
         console.log(`❌ User ${userId} disconnected`);
 
-        const sockets = onlineUsers.get(userId) || [];
-        const updatedSockets = sockets.filter(id => id !== socket.id);
+        const isFullyOffline = await removeUserSocket(userId, socket.id);
 
-        if (updatedSockets.length === 0) {
-          onlineUsers.delete(userId);
+        if (isFullyOffline) {
           socket.broadcast.emit(events.USER_OFFLINE, { userId });
-        } else {
-          onlineUsers.set(userId, updatedSockets);
         }
       });
 
@@ -152,6 +150,4 @@ const handleSocket = (io) => {
   });
 };
 
-const getOnlineUsers = () => onlineUsers;
-
-module.exports = { handleSocket, getOnlineUsers };
+module.exports = { handleSocket };

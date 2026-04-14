@@ -3,14 +3,23 @@ const cors = require("cors");
 const authRoutes = require("./modules/auth/auth.routes");
 const chatRoutes = require("./modules/chat/chat.routes");
 const userRoutes = require("./modules/user/user.routes");
-
+const { globalLimiter, authLimiter } = require("./middleware/rateLimiter.middleware");
 
 const app = express();
 
 // Middlewares
 app.use(cors());
 app.use(express.json());
-app.use("/api/auth", authRoutes);
+
+// ==============================
+// 🌐 Global Rate Limiter
+// ==============================
+app.use(globalLimiter);
+
+// ==============================
+// 🛣️ Routes
+// ==============================
+app.use("/api/auth", authLimiter, authRoutes);  // stricter limiter on auth
 app.use("/api/chat", chatRoutes);
 app.use("/api/users", userRoutes);
 
