@@ -104,56 +104,6 @@ const handleSocket = (io) => {
       });
 
       // ==============================
-      // ✍️ TYPING START
-      // ==============================
-      socket.on(events.TYPING, async ({ receiverId }) => {
-        // 🛡️ Rate limit: 20 typing events per 10 seconds
-        const allowed = await socketRateLimiter(redis, userId, "typing", 20, 10);
-        if (!allowed) return; // silently drop, no need to notify user
-
-        const receiverSockets = await getUserSockets(receiverId);
-        receiverSockets.forEach((socketId) => {
-          io.to(socketId).emit(events.TYPING, { userId });
-        });
-      });
-
-      // ==============================
-      // ✍️ TYPING STOP
-      // ==============================
-      socket.on(events.STOP_TYPING, async ({ receiverId }) => {
-        const receiverSockets = await getUserSockets(receiverId);
-        receiverSockets.forEach((socketId) => {
-          io.to(socketId).emit(events.STOP_TYPING, { userId });
-        });
-      });
-
-      // ==============================
-      // 👁 MESSAGE SEEN
-      // ==============================
-      socket.on(events.MESSAGE_SEEN, async ({ messageId }) => {
-        try {
-          const message = await Message.findById(messageId);
-
-          if (!message) return;
-          if (message.receiver.toString() !== userId) return;
-
-          message.status = "seen";
-          await message.save();
-
-          const senderSockets = await getUserSockets(message.sender.toString());
-          senderSockets.forEach((socketId) => {
-            io.to(socketId).emit(events.MESSAGE_SEEN, {
-              messageId,
-              status: "seen",
-            });
-          });
-
-        } catch (err) {
-          console.log("❌ Seen error:", err.message);
-        }
-      });
-
-      // ==============================
       // 🔌 DISCONNECT
       // ==============================
       socket.on(events.DISCONNECT, async () => {
