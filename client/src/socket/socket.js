@@ -28,7 +28,7 @@ export const connectSocket = (token) => {
 
       // Redirect to login
       alert(message);
-      window.location.href = "/login";
+      window.location.href = "/";
     });
   }
 
