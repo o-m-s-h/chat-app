@@ -6,6 +6,7 @@ const {
   addUserSocket,
   removeUserSocket,
   getUserSockets,
+  getAndClearUserSockets,
   getOnlineUserIds,
 } = require("../presence/presence.service");
 const { socketRateLimiter } = require("../../middleware/rateLimiter.middleware");
@@ -27,9 +28,31 @@ const handleSocket = (io) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const userId = decoded.userId;
 
+      // 👇 Reject if this token belongs to an old session
+      // (i.e. user has logged in again from somewhere else)
+      const storedIat = await redis.get(`session:${userId}`);
+      if (!storedIat || decoded.iat < parseInt(storedIat)) {
+        console.log(`🚫 Stale token for user ${userId}, disconnecting...`);
+        socket.emit("force_logout", {
+          message: "Your session has expired. Please login again.",
+        });
+        socket.disconnect();
+        return;
+      }
+
+       const oldSockets = await getAndClearUserSockets(userId);
+      oldSockets.forEach((sid) => {
+        const oldSocket = io.sockets.sockets.get(sid);
+        if (oldSocket) {
+          oldSocket.emit("force_logout", {
+            message: "You logged in from another device.",
+          });
+          oldSocket.disconnect(true);
+        }
+      });
+
       // 🔥 Add socket to Redis presence
       await addUserSocket(userId, socket.id);
-
       console.log(`✅ User ${userId} is online`);
 
       // 🔥 Send all online users to this client

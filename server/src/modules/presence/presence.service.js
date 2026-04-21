@@ -36,7 +36,13 @@ const getUserSockets = async (userId) => {
   return existing ? JSON.parse(existing) : [];
 };
 
-// Get all online userIds
+const getAndClearUserSockets = async (userId) => {
+  const existing = await redis.hget(ONLINE_KEY, userId);
+  if (!existing) return [];
+  await redis.hdel(ONLINE_KEY, userId);
+  return JSON.parse(existing);
+};
+
 const getOnlineUserIds = async () => {
   const all = await redis.hkeys(ONLINE_KEY);
   return all;
@@ -52,6 +58,7 @@ module.exports = {
   addUserSocket,
   removeUserSocket,
   getUserSockets,
+  getAndClearUserSockets,
   getOnlineUserIds,
   isUserOnline,
 };

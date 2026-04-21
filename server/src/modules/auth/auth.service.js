@@ -1,6 +1,7 @@
 const User = require("./auth.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const redis = require("../../config/redis");
 
 const registerUser = async ({ username, email, password }) => {
   const existingUser = await User.findOne({
@@ -43,6 +44,14 @@ const loginUser = async ({ email, password }) => {
     { userId: user._id },
     process.env.JWT_SECRET,
     { expiresIn: "7d" }
+  );
+
+  const decoded = jwt.decode(token);
+  await redis.set(
+    `session:${user._id}`,
+    decoded.iat,
+    "EX",
+    7 * 24 * 60 * 60
   );
 
   return { user, token };
