@@ -93,13 +93,10 @@ const handleSocket = (io) => {
             receiverSockets.forEach((socketId) => {
               io.to(socketId).emit(events.RECEIVE_MESSAGE, message);
             });
-
+            socket.emit(events.RECEIVE_MESSAGE, message);
             message.status = "delivered";
             await message.save();
           }
-
-          socket.emit(events.RECEIVE_MESSAGE, message);
-
         } catch (err) {
           console.log("❌ Message error:", err.message);
         }
