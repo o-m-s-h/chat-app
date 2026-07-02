@@ -137,20 +137,28 @@ function Chat() {
 
   // 🔥 SEND MESSAGE
   const sendMessage = () => {
-    if (!input || !selectedChat || !socket) return;
+    console.log("🚀 sendMessage called");
+    if (!input || !selectedChat || !socket) {
+      console.log("❌ Blocked", {
+        input,
+        selectedChat,
+        socketConnected: socket?.connected,
+      });
+      return;
+    }
 
     const receiverId = selectedChat.participants.find(
       (p) => p._id !== userId
     )?._id;
 
     if (!receiverId) return;
-
+    console.log("Receiver:", receiverId);
     socket.emit("send_message", {
       receiverId,
       content: input,
       chatId: selectedChat._id,
     });
-
+    console.log("✅ Message emitted");
     setInput("");
   };
 

@@ -69,6 +69,8 @@ const handleSocket = (io) => {
       // 📩 SEND MESSAGE
       // ==============================
       socket.on(events.SEND_MESSAGE, async ({ receiverId, content }) => {
+        console.log("🔥 SEND_MESSAGE event received");
+        console.log({ receiverId, content });
         try {
           // 🛡️ Rate limit: 30 messages per 60 seconds
           const allowed = await socketRateLimiter(redis, userId, "send_message", 30, 60);
