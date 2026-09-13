@@ -1,4 +1,27 @@
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
+:root {
+  color-scheme: dark;
+  --bg: #080e1a;
+  --panel: #101a2b;
+  --line: #25334a;
+  --text: #edf3fc;
+  --muted: #a0afc5;
+  --cyan: #59def0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--bg);
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, input { font: inherit; }
+button { cursor: pointer; color: inherit; }
+button, input { transition: background .18s, border-color .18s, box-shadow .18s; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+input { min-width: 0; color: var(--text); }
+input::placeholder { color: #91a1ba; opacity: 1; }
+button svg { flex-shrink: 0; }
+::selection { background: #23677e; color: white; }
+* { scrollbar-width: thin; scrollbar-color: #34445e transparent; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
 }
