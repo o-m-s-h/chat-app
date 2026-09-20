@@ -6,11 +6,11 @@ function RegisterUI({ username, email, password, setUsername, setEmail, setPassw
   const navigate = useNavigate();
   return (
     <main className="auth-page">
-      <div className="auth-brand"><span className="brand-mark"><UIIcon /></span>afterhours<span style={{ color: "var(--cyan)" }}>.</span></div>
+      <div className="auth-brand"><span className="brand-mark"><UIIcon /></span>afterhours<span style={{ color: "var(--accent)" }}>.</span></div>
       <section className="auth-card" aria-labelledby="register-title">
-        <p className="auth-eyebrow">A place for your people</p>
-        <h1 id="register-title">Great chats start here.</h1>
-        <p className="auth-description">Create your account. Make yourself at home.</p>
+        <p className="auth-eyebrow">GET STARTED</p>
+        <h1 id="register-title">Create your account</h1>
+        <p className="auth-description">A simple way to stay close to your people.</p>
         <label htmlFor="register-name">Username</label>
         <div className="auth-field"><input id="register-name" type="text" placeholder="What should we call you?" value={username} onChange={(e) => setUsername(e.target.value)} /></div>
         <label htmlFor="register-email">Email address</label>

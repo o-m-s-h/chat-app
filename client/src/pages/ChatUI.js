@@ -68,13 +68,13 @@ const handleMouseMove = (e) => {
       <aside className="sidebar" style={{ width: sidebarWidth }}>
         <div className="sidebar-brand">afterhours<span>.</span></div>
         <div className="sidebar-heading"><h1>{showOnlineOnly ? "Online users" : "Messages"}</h1><span className="count-badge">{filteredUsers.length}</span></div>
-        <p className="sidebar-subtitle">Your people, one conversation away.</p>
+        <p className="sidebar-subtitle">All your conversations in one place.</p>
         <div className="search-box">
           <UIIcon name="search" />
           <input type="text" aria-label="Search conversations" placeholder="Search people" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="add-user-section">
-          <label htmlFor="add-email">Start a connection</label>
+          <label htmlFor="add-email">Add a contact</label>
           <div className="add-user-box">
             <input id="add-email" placeholder="Enter their email" value={email} onChange={(e) => setEmail(e.target.value)} />
             <button onClick={addUser}>Add</button>
@@ -94,7 +94,7 @@ const handleMouseMove = (e) => {
           })}
           {filteredUsers.length === 0 && <div className="list-empty"><UIIcon name="users" /><p>{search ? "No people found" : showOnlineOnly ? "It's quiet right now" : "Your people go here"}</p><span>{search ? "Try another name." : showOnlineOnly ? "Check all conversations to find someone." : "Add someone by email to get started."}</span></div>}
         </div>
-        <div className="sidebar-footer"><span className="footer-dot" />A little closer, wherever you are.</div>
+        <div className="sidebar-footer"><span className="footer-dot" />Keep in touch. Keep it simple.</div>
       </aside>
 
       <div className="resizer" onMouseDown={handleMouseDown} title="Drag to resize sidebar" />
@@ -107,18 +107,16 @@ const handleMouseMove = (e) => {
                 <span className="user-avatar">{p.username.charAt(0).toUpperCase()}</span>
                 <div><div className="header-name">{p.username}</div><small><span className={`status-dot ${onlineUsers.includes(p._id) ? "online" : ""}`} />{onlineUsers.includes(p._id) ? "Online" : "Offline"}</small></div>
               </div>
-            )) : <div><div className="header-name">Your conversation space</div><small>Make time for a good chat.</small></div>}
+            )) : <div><div className="header-name">Messages</div><small>Stay in touch with your people.</small></div>}
           </div>
           <div className="account-actions"><span className="account-name">{username}</span><button className="logout-btn" onClick={logout}><UIIcon name="logout" /><span>Log out</span></button></div>
         </header>
 
         <div className="messages">
           {!selectedChat && messages.length === 0 && <div className="chat-empty">
-            <div className="empty-orbit"><span className="empty-chat-icon"><UIIcon /></span><span className="orbit-dot" /></div>
-            <p className="empty-eyebrow">STAY IN THE LOOP</p>
-            <h2>A good conversation<br />starts with hello<span>.</span></h2>
+            <span className="empty-chat-icon"><UIIcon /></span>
+            <h2>Your next conversation starts here</h2>
             <p>Choose someone from your conversations,<br className="desktop-break" /> or add a friend by email to get started.</p>
-            <div className="empty-note"><UIIcon name="users" />Your people. Your space.</div>
           </div>}
           {selectedChat && messages.length === 0 && <div className="chat-empty"><span className="empty-chat-icon"><UIIcon /></span><h2>Say hello<span>.</span></h2><p>This conversation is ready for its first message.</p></div>}
           {messages.map((msg, i) => {
