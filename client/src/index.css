@@ -1,11 +1,11 @@
 :root {
-  color-scheme: dark;
-  --bg: #080e1a;
-  --panel: #101a2b;
-  --line: #25334a;
-  --text: #edf3fc;
-  --muted: #a0afc5;
-  --cyan: #59def0;
+  color-scheme: light;
+  --bg: #f4f7fc;
+  --panel: #ffffff;
+  --line: #e1e7f0;
+  --text: #1b2a43;
+  --muted: #61718a;
+  --accent: #2859d9;
   font-family: "Segoe UI", system-ui, sans-serif;
   font-size: 16px;
   color: var(--text);
@@ -16,12 +16,14 @@ body { margin: 0; }
 button, input { font: inherit; }
 button { cursor: pointer; color: inherit; }
 button, input { transition: background .18s, border-color .18s, box-shadow .18s; }
-button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 input { min-width: 0; color: var(--text); }
-input::placeholder { color: #91a1ba; opacity: 1; }
+input::placeholder { color: #687891; opacity: 1; }
 button svg { flex-shrink: 0; }
-::selection { background: #23677e; color: white; }
-* { scrollbar-width: thin; scrollbar-color: #34445e transparent; }
+::selection { background: #d8e5ff; color: #173779; }
+* { scrollbar-width: thin; scrollbar-color: #c3cede transparent; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+.brand-mark { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px; background: var(--accent); color: white; }
